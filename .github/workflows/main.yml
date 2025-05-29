@@ -1,7 +1,7 @@
 name: Example workflow for Python-3.8 using Snyk
 on: push
 jobs:
-  security:
+  security-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
@@ -9,16 +9,21 @@ jobs:
         uses: snyk/actions/python-3.8@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+         # SNYK_API: https://api.eu.snyk.io
         with:
-          args: --severity-threshold=high
-          
-  security_monitor:
+          args: --org=pipeline-examples --all-projects --severity-threshold=high
+        continue-on-error: true
+
+  security-monitor:
     runs-on: ubuntu-latest
+    needs: security-test
     steps:
       - uses: actions/checkout@master
       - name: Run Snyk to check for vulnerabilities
-        uses: snyk/actions/node@master
+        uses: snyk/actions/python-3.8@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+         # SNYK_API: https://api.eu.snyk.io
         with:
           command: monitor
+          args: --all-projects
